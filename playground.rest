@@ -1,0 +1,16 @@
+POST http://localhost:3001/echo
+Content-Type: application/json
+
+{
+  "key": "value",
+  "anotherKey": "anotherValue"
+}
+
+###
+
+POST http://localhost:3001/prompt
+Content-Type: application/json
+
+{
+  "prompt": "where is timbuktu"
+}

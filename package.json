@@ -1,0 +1,27 @@
+{
+  "name": "gpt-template",
+  "version": "0.0.1",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "got": "^14.4.2",
+    "ky": "^1.7.0",
+    "metascraper": "^5.45.23",
+    "metascraper-author": "^5.45.22",
+    "metascraper-description": "^5.45.22",
+    "metascraper-publisher": "^5.45.22",
+    "metascraper-title": "^5.45.22",
+    "metascraper-url": "^5.45.22",
+    "openai": "^4.28.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
