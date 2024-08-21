@@ -18,10 +18,10 @@ document.getElementById('promptForm').addEventListener('submit', function (e) {
     })
         .then(response => response.json())
         .then(data => {
-            // const contentString = data.choices[0].message.content;
-            document.getElementById('response').innerText = JSON.stringify(data, null, 2);
-            document.getElementById('textContent').innerText = data.parsedDoc.textContent;
+            // document.getElementById('response').innerText = JSON.stringify(data, null, 2);
+            // document.getElementById('textContent').innerText = data.parsedDoc.textContent;
             console.log("🚀 ~ data:", data)
+            displayCard(data);
             
         })
         .catch(error => {
@@ -34,6 +34,31 @@ document.getElementById('promptForm').addEventListener('submit', function (e) {
         });
 });
 
+
+function displayCard(data) {
+    const cardContainer = document.getElementById('cardContainer');
+    // cardContainer.innerHTML = ''; // Clear previous content
+
+    const metadata = data.metadata;
+
+    const card = `
+        <div class="card">
+            <img src="${metadata.image}" alt="${metadata.title}">
+            <div class="card-content">
+                <div class="card-title">${metadata.title}</div>
+                <div class="card-description">${metadata.description}</div>
+                <div class="card-footer">
+                    <div>Author: ${metadata.author || 'Unknown'}</div>
+                    <div>Publisher: ${metadata.publisher || 'Unknown'}</div>
+                    <div>Date: ${new Date(metadata.date).toLocaleDateString()}</div>
+                    <a href="${metadata.url}" target="_blank">Read more</a>
+                </div>
+            </div>
+        </div>
+    `;
+
+    cardContainer.innerHTML += card;
+}
 
 // "metadata": {
 // "author": "Andrej Gajdos",

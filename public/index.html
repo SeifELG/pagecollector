@@ -4,17 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GPT Prompt Template</title>
+    
+    <style>
+        .card {
+            max-width: 400px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        
+        .card img {
+            width: 100%;
+            height: auto;
+        }
+        
+        .card-content {
+            padding: 16px;
+        }
+        
+        .card-title {
+            font-size: 1.25em;
+            font-weight: bold;
+            margin: 0 0 8px;
+        }
+        
+        .card-description {
+            font-size: 1em;
+            margin: 0 0 8px;
+        }
+        
+        .card-footer {
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        #cardContainer{
+            display: flex;
+            gap: 30px;
+        }
+    </style>
+    
 </head>
 
 <body>
-    <h1>Test Prompt Endpoint</h1>
+    <h1>Page Collector</h1>
     <form id="promptForm">
         <input type="text" id="input" placeholder="Enter your prompt here" required>
         <button type="submit">Send Prompt</button>
     </form>
-    <div id="response"></div>
-    <div id="textContent"></div>
+    <!-- <div id="response"></div>
+    <div id="textContent"></div> -->
     <div id="loading" style="display: none;">Loading...</div>
+
+    <div id="cardContainer"></div>
+
     <script src="app.js"></script>
 </body>
 
