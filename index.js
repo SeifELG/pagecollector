@@ -6,13 +6,6 @@ const OpenAI = require('openai');
 
 //https://andrejgajdos.com/how-to-create-a-link-preview/
 
-// const metascraper = require('metascraper')([
-//     require('metascraper-url')(),
-//     require('metascraper-title')(),
-//     require('metascraper-description')(),
-//     require('metascraper-author')(),
-//     require('metascraper-publisher')(),
-// ]);
 
 const metascraper = require('metascraper')([
     require('metascraper-author')(),
@@ -68,6 +61,8 @@ async function simplePrompt(inputStr) {
     return chatCompletion;
 }
 
+
+
 app.post("/fetch-metadata", async (req, res) => {
     const { url } = req.body;
 
@@ -85,6 +80,26 @@ app.post("/fetch-metadata", async (req, res) => {
 
         let parsedDoc = readable(document)
 
+
+        // what do we actually want to send over?
+
+        /**
+         * headline image (metadata.image)
+         * 
+         * metadata.title
+         * doc title
+         * 
+         * metadata.description
+         * 
+         * first few lines?
+         * 
+         * author - metadata or otherwise
+         * 
+         * full url
+         * just domain
+         * favicon
+         * 
+         */
 
         res.status(200).json({ metadata, parsedDoc });
     } catch (error) {

@@ -37,12 +37,15 @@ document.getElementById('promptForm').addEventListener('submit', function (e) {
 
 function displayCard(data) {
     const cardContainer = document.getElementById('cardContainer');
-    // cardContainer.innerHTML = ''; // Clear previous content
 
     const metadata = data.metadata;
 
+    // Generate a unique ID for each card
+    const cardId = `card-${Date.now()}`;
+
     const card = `
-        <div class="card">
+        <div class="card" id="${cardId}">
+            <button class="delete-button" onclick="deleteCard('${cardId}')">X</button>
             <img src="${metadata.image}" alt="${metadata.title}">
             <div class="card-content">
                 <div class="card-title">${metadata.title}</div>
@@ -58,6 +61,13 @@ function displayCard(data) {
     `;
 
     cardContainer.innerHTML += card;
+}
+
+function deleteCard(cardId) {
+    const card = document.getElementById(cardId);
+    if (card) {
+        card.remove();
+    }
 }
 
 // "metadata": {
