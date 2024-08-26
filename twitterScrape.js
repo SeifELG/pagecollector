@@ -23,7 +23,7 @@ async function getTweetContext(tweetUrl) {
             const tweetText = $(element).find('div[lang]').text();
             // const tweetAuthor = $(element).find('a[href*="/status/"] span').first().text();
             const tweetTimestamp = $(element).find('time').attr('datetime');
-        
+
             const images = $(element).find('img').map((i, img) => $(img).attr('src')).get();
             const links = $(element).find('a').map((i, link) => $(link).attr('href')).get();
 
@@ -31,7 +31,10 @@ async function getTweetContext(tweetUrl) {
 
             const userNameDiv = $(element).find('div[data-testid="User-Name"]').text();
 
-           const author = userNameDiv.split('@')[0];
+            const author = userNameDiv.split('@')[0];
+
+            const favicon = "https://abs.twimg.com/favicons/twitter.3.ico";
+      
 
             tweets.push({
                 author: author,
@@ -41,6 +44,8 @@ async function getTweetContext(tweetUrl) {
                 timestamp: tweetTimestamp,
                 images,
                 links,
+                url: tweetUrl,
+                favicon,
             });
         });
 

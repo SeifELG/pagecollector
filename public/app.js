@@ -17,12 +17,16 @@ document.getElementById('promptForm').addEventListener('submit', function (e) {
         body: JSON.stringify({ url: input }),
     })
         .then(response => response.json())
-        .then(data => {
-            // document.getElementById('response').innerText = JSON.stringify(data, null, 2);
-            // document.getElementById('textContent').innerText = data.parsedDoc.textContent;
-            console.log("🚀 ~ data:", data)
-            displayCard(data);
-            
+        .then(response => {
+            console.log("🚀 ~ response:", response)
+
+            const data = response.data
+
+            if (response.type === "page") {
+                displayCard(data);
+            } else if (response.type === "tweet") {
+                displayTweet(data);
+            }
         })
         .catch(error => {
             console.error('Error:', error);
@@ -34,11 +38,27 @@ document.getElementById('promptForm').addEventListener('submit', function (e) {
         });
 });
 
+function displayTweet(data) {
+    const cardContainer = document.getElementById('cardContainer');
+    const cardId = `card-${Date.now()}`;
+    const card = `
+        <div class="card" id="${cardId}">
+            <button class="delete-button" onclick="deleteCard('${cardId}')">X</button>
+            <img class="headline-image" src="${data.images[1] || data.favicon}">
+            <div class="card-content">
+                <div class="card-title">Tweet by ${data.author}</div>
+                <div class="card-description">${data.text ?? ''}</div>
+                <img class="favicon" src="${data.favicon}" alt="Favicon" />
+                <img class="favicon" src="${data.pfp}" alt="Favicon" />
+                <a href="${data.url}" target="_blank">Open page</a>
+            </div>
+        </div>
+    `;
+    cardContainer.innerHTML += card;
+}
 
 function displayCard(data) {
     const cardContainer = document.getElementById('cardContainer');
-
-    const metadata = data.metadata;
 
     // Generate a unique ID for each card
     const cardId = `card-${Date.now()}`;
@@ -46,17 +66,18 @@ function displayCard(data) {
     const card = `
         <div class="card" id="${cardId}">
             <button class="delete-button" onclick="deleteCard('${cardId}')">X</button>
-            <img class="headline-image" src="${metadata.image}" alt="${metadata.title}">
+            <img class="headline-image" src="${data.image}" alt="${data.title}">
             <div class="card-content">
-                <div class="card-title">${metadata.title ?? data.data.title}</div>
-                <div class="card-description">${metadata.description ?? ''}</div>
-                <div class="card-description">${data.data.domain}</div>
-                <img class="favicon" src="${data.data.favicon}" alt="Favicon" />
-                <a href="${metadata.url}" target="_blank">Open page</a>
-                ${data.data.links.map(link => `<a href=${link}  target="_blank">${link}</a>` ).join('<br>')}
+                <div class="card-title">${data.title}</div>
+                <div class="card-description">${data.description ?? ''}</div>
+                <div class="card-description">${data.domain}</div>
+                <img class="favicon" src="${data.favicon}" alt="Favicon" />
+                <a href="${data.url}" target="_blank">Open page</a>
             </div>
         </div>
     `;
+
+    //${data.data.links.map(link => `<a href=${link}  target="_blank">${link}</a>` ).join('<br>')}
 
     // // old card:
     // const card = `

@@ -77,13 +77,11 @@ app.post("/fetch-metadata", async (req, res) => {
     try {
         console.log(isTwitterDomain(url))
 
-        if(isTwitterDomain(url)){
-            // this is async bro..
-            const {tweets} = await getTweetContext(url)
-            res.status(200).json( {tweets} );
+        if (isTwitterDomain(url)) {
+            const { tweets } = await getTweetContext(url)
+            res.status(200).json({ type: "tweet", data: tweets[0] });
             return
         }
-
 
         const response = await fetch(url);
         const html = await response.text();
@@ -115,10 +113,8 @@ app.post("/fetch-metadata", async (req, res) => {
             .filter(href => href); // Ensure there are no empty hrefs
         const uniqueLinks = [...new Set(links)];
 
-        // what do we actually want to send over?
-        // we should iron out this data interface, clean it up!
-
-        res.status(200).json({ metadata, parsedDoc, data: { domain, title,  favicon, links: uniqueLinks }, document, serializedHtml });
+        // res.status(200).json({ metadata, parsedDoc, data: { domain, title, favicon, links: uniqueLinks }, document, serializedHtml });
+        res.status(200).json({ type: 'page', data: { title: metadata.title, image: metadata.image, description: metadata.description, domain, favicon, url: metadata.url } });
     } catch (error) {
         console.error("Error fetching metadata", error);
         res.status(500).send("An error occurred while fetching the metadata.");
