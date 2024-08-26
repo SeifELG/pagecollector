@@ -46,19 +46,35 @@ function displayCard(data) {
     const card = `
         <div class="card" id="${cardId}">
             <button class="delete-button" onclick="deleteCard('${cardId}')">X</button>
-            <img src="${metadata.image}" alt="${metadata.title}">
+            <img class="headline-image" src="${metadata.image}" alt="${metadata.title}">
             <div class="card-content">
-                <div class="card-title">${metadata.title}</div>
-                <div class="card-description">${metadata.description}</div>
-                <div class="card-footer">
-                    <div>Author: ${metadata.author || 'Unknown'}</div>
-                    <div>Publisher: ${metadata.publisher || 'Unknown'}</div>
-                    <div>Date: ${new Date(metadata.date).toLocaleDateString()}</div>
-                    <a href="${metadata.url}" target="_blank">Read more</a>
-                </div>
+                <div class="card-title">${metadata.title ?? data.data.title}</div>
+                <div class="card-description">${metadata.description ?? ''}</div>
+                <div class="card-description">${data.data.domain}</div>
+                <img class="favicon" src="${data.data.favicon}" alt="Favicon" />
+                <a href="${metadata.url}" target="_blank">Open page</a>
+                ${data.data.links.map(link => `<a href=${link}  target="_blank">${link}</a>` ).join('<br>')}
             </div>
         </div>
     `;
+
+    // // old card:
+    // const card = `
+    //     <div class="card" id="${cardId}">
+    //         <button class="delete-button" onclick="deleteCard('${cardId}')">X</button>
+    //         <img src="${metadata.image}" alt="${metadata.title}">
+    //         <div class="card-content">
+    //             <div class="card-title">${metadata.title}</div>
+    //             <div class="card-description">${metadata.description}</div>
+    //             <div class="card-footer">
+    //                 <div>Author: ${metadata.author || 'Unknown'}</div>
+    //                 <div>Publisher: ${metadata.publisher || 'Unknown'}</div>
+    //                 <div>Date: ${new Date(metadata.date).toLocaleDateString()}</div>
+    //                 <a href="${metadata.url}" target="_blank">Read more</a>
+    //             </div>
+    //         </div>
+    //     </div>
+    // `;
 
     cardContainer.innerHTML += card;
 }

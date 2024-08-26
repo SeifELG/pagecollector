@@ -1,8 +1,12 @@
 
 require("dotenv").config();
 const path = require("path");
+const url = require('url');
 const express = require("express");
 const OpenAI = require('openai');
+
+const { getTweetContext, isTwitterDomain } = require('./twitterScrape.js');
+
 
 //https://andrejgajdos.com/how-to-create-a-link-preview/
 
@@ -71,6 +75,16 @@ app.post("/fetch-metadata", async (req, res) => {
     }
 
     try {
+        console.log(isTwitterDomain(url))
+
+        if(isTwitterDomain(url)){
+            // this is async bro..
+            const {tweets} = await getTweetContext(url)
+            res.status(200).json( {tweets} );
+            return
+        }
+
+
         const response = await fetch(url);
         const html = await response.text();
         const metadata = await metascraper({ html, url });
@@ -78,30 +92,33 @@ app.post("/fetch-metadata", async (req, res) => {
         const dom = new JSDOM(html);
         const document = dom.window.document;
 
+        const serializedHtml = dom.serialize();
+
         let parsedDoc = readable(document)
 
+        const favicon = getFavicon(document, url)
+        const title = document.querySelector('title')?.textContent || 'No title available';
+
+        const parsedUrl = new URL(url);
+        const domain = parsedUrl.hostname;
+
+        const links = Array.from(document.querySelectorAll('a'))
+            .map(anchor => {
+                // Resolve the relative URLs to absolute URLs
+                try {
+                    return new URL(anchor.href, url).href;
+                } catch (err) {
+                    console.warn(`Invalid URL skipped: ${anchor.href}`);
+                    return null;
+                }
+            })
+            .filter(href => href); // Ensure there are no empty hrefs
+        const uniqueLinks = [...new Set(links)];
 
         // what do we actually want to send over?
+        // we should iron out this data interface, clean it up!
 
-        /**
-         * headline image (metadata.image)
-         * 
-         * metadata.title
-         * doc title
-         * 
-         * metadata.description
-         * 
-         * first few lines?
-         * 
-         * author - metadata or otherwise
-         * 
-         * full url
-         * just domain
-         * favicon
-         * 
-         */
-
-        res.status(200).json({ metadata, parsedDoc });
+        res.status(200).json({ metadata, parsedDoc, data: { domain, title,  favicon, links: uniqueLinks }, document, serializedHtml });
     } catch (error) {
         console.error("Error fetching metadata", error);
         res.status(500).send("An error occurred while fetching the metadata.");
@@ -114,6 +131,26 @@ function readable(document) {
     const reader = new Readability(document)
     const article = reader.parse()
     return article
+}
+
+function getFavicon(document, url) {
+
+    let faviconUrl = document.querySelector('link[rel="icon"]')?.getAttribute('href') ||
+        document.querySelector('link[rel="shortcut icon"]')?.getAttribute('href') ||
+        document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href');
+
+    if (faviconUrl) {
+        // If the favicon URL is relative, resolve it against the base URL
+        if (!faviconUrl.startsWith('http')) {
+            const baseUrl = new URL(url).origin;
+            faviconUrl = new URL(faviconUrl, baseUrl).href;
+        }
+    } else {
+        // Fallback to a common location if no favicon link is found
+        faviconUrl = `${new URL(url).origin}/favicon.ico`;
+    }
+
+    return faviconUrl;
 }
 
 const PORT = 3001 || process.env.PORT;
