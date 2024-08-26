@@ -41,15 +41,20 @@ document.getElementById('promptForm').addEventListener('submit', function (e) {
 function displayTweet(data) {
     const cardContainer = document.getElementById('cardContainer');
     const cardId = `card-${Date.now()}`;
+
+    // figure out which image to show
     const card = `
         <div class="card" id="${cardId}">
             <button class="delete-button" onclick="deleteCard('${cardId}')">X</button>
-            <img class="headline-image" src="${data.images[1] || data.favicon}">
+            <img class="headline-image" src="${data.images[data.images.length - 1] || data.favicon}">
             <div class="card-content">
-                <div class="card-title">Tweet by ${data.author}</div>
+                <div class="tweet-author">
+                    <img class="tweet-pfp" src="${data.pfp}" alt="Favicon" />
+                    <p class="card-description">@${data.handle}</p>
+                </div>
+                <div class="card-title">${data.author}</div>
                 <div class="card-description">${data.text ?? ''}</div>
                 <img class="favicon" src="${data.favicon}" alt="Favicon" />
-                <img class="favicon" src="${data.pfp}" alt="Favicon" />
                 <a href="${data.url}" target="_blank">Open page</a>
             </div>
         </div>

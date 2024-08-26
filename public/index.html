@@ -74,6 +74,18 @@
             width: 16px;
         }
 
+        .tweet-pfp {
+            height: 40px;
+            width: 40px;
+            /* display: inline; */
+            border-radius: 100%;
+        }
+
+        .tweet-author {
+           display:flex;
+           flex-direction: row;
+        }
+
         #cardContainer {
             display: flex;
             gap: 30px;
@@ -86,7 +98,7 @@
     <h1>Page Collector</h1>
     <form id="promptForm">
         <input type="text" id="input" placeholder="Input URL" required>
-        <button type="submit">Submit</button>
+        <button type="submit">Add</button>
     </form>
     <!-- <div id="response"></div>
     <div id="textContent"></div> -->
