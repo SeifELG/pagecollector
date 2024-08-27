@@ -42,11 +42,13 @@ function displayTweet(data) {
     const cardContainer = document.getElementById('cardContainer');
     const cardId = `card-${Date.now()}`;
 
+    const xIconHotlink = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/X_icon_2.svg/1024px-X_icon_2.svg.png";
+
     // figure out which image to show
     const card = `
         <div class="card" id="${cardId}">
             <button class="delete-button" onclick="deleteCard('${cardId}')">X</button>
-            <img class="headline-image" src="${data.images[data.images.length - 1] || data.favicon}">
+            <img class="headline-image" src="${data.mediaImages[0] || xIconHotlink}">
             <div class="card-content">
                 <div class="tweet-author">
                     <img class="tweet-pfp" src="${data.pfp}" alt="Favicon" />
@@ -122,3 +124,12 @@ function deleteCard(cardId) {
 // "title": "How to Create a Link Preview: The Definite Guide [Implementation and Demo Included] - Andrej Gajdos",
 // "url": "https://andrejgajdos.com/how-to-create-a-link-preview/"
 // },
+
+/**
+ * data should be stored as data, as array of json
+ * and then a render method over this data to actually display it
+ * 
+ * use preact and htm?
+ * 
+ * next step is to fix this, 
+ */

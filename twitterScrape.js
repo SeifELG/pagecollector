@@ -25,6 +25,8 @@ async function getTweetContext(tweetUrl) {
             const tweetTimestamp = $(element).find('time').attr('datetime');
 
             const images = $(element).find('img').map((i, img) => $(img).attr('src')).get();
+            const mediaImages = images.filter(url => url.includes('pbs.twimg.com/media') || url.includes('video_thumb'));
+
             const links = $(element).find('a').map((i, link) => $(link).attr('href')).get();
 
             const authorHandle = links[0].substring(1);
@@ -43,6 +45,7 @@ async function getTweetContext(tweetUrl) {
                 text: tweetText,
                 timestamp: tweetTimestamp,
                 images,
+                mediaImages,
                 links,
                 url: tweetUrl,
                 favicon,
