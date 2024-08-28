@@ -85,6 +85,7 @@ app.post("/fetch-metadata", async (req, res) => {
 
         const response = await fetch(url);
         const html = await response.text();
+        console.log("🚀 ~ app.post ~ html:", html)
         const metadata = await metascraper({ html, url });
 
         const dom = new JSDOM(html);
