@@ -27,7 +27,10 @@
     "metascraper-title": "^5.45.22",
     "metascraper-url": "^5.45.22",
     "openai": "^4.28.0",
-    "puppeteer": "^23.1.1"
+    "puppeteer": "^23.1.1",
+    "shortid": "^2.2.16",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"

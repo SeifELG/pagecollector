@@ -5,109 +5,337 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page Collector</title>
+    <script type="module">
+        import { html, render, useState, useEffect } from 'https://unpkg.com/htm/preact/standalone.module.js'
 
+        const App = () => {
+            const [collections, setCollections] = useState([])
+            const [currentCollection, setCurrentCollection] = useState(null)
+            const [loading, setLoading] = useState(false)
+            const [error, setError] = useState(null)
+
+            useEffect(() => {
+                const collectionId = new URLSearchParams(window.location.search).get('id')
+                if (collectionId) {
+                    fetchCollection(collectionId)
+                }
+            }, [])
+
+            const fetchCollection = async (id) => {
+                setLoading(true)
+                setError(null)
+                try {
+                    const response = await fetch(`/collections/${id}`)
+                    const data = await response.json()
+                    setCurrentCollection(data)
+                } catch (err) {
+                    setError('Failed to fetch collection. Please try again.')
+                    console.error('Error:', err)
+                } finally {
+                    setLoading(false)
+                }
+            }
+
+            const createCollection = async (name) => {
+                setLoading(true)
+                setError(null)
+                try {
+                    const response = await fetch('/collections', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name }),
+                    })
+                    const data = await response.json()
+                    setCollections(prev => [...prev, data])
+                    setCurrentCollection(data)
+                } catch (err) {
+                    setError('Failed to create collection. Please try again.')
+                    console.error('Error:', err)
+                } finally {
+                    setLoading(false)
+                }
+            }
+
+            const addCard = async (url) => {
+                setLoading(true)
+                setError(null)
+                try {
+                    const metadataResponse = await fetch('/fetch-metadata', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url }),
+                    })
+                    const metadata = await metadataResponse.json()
+                    
+                    await fetch(`/collections/${currentCollection.id}/cards`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(metadata),
+                    })
+                    
+                    setCurrentCollection(prev => ({
+                        ...prev,
+                        cards: [...prev.cards, { id: Date.now(), ...metadata }]
+                    }))
+                } catch (err) {
+                    setError('Failed to add card. Please try again.')
+                    console.error('Error:', err)
+                } finally {
+                    setLoading(false)
+                }
+            }
+
+            return html`
+                <div class="app">
+                    <h1>Page Collector</h1>
+                    ${!currentCollection ? html`
+                        <${CreateCollection} onCreate=${createCollection} loading=${loading} />
+                    ` : html`
+                        <h2>${currentCollection.name}</h2>
+                        <p>Share this collection: ${window.location.origin}?id=${currentCollection.id}</p>
+                        <${Form} onSubmit=${addCard} loading=${loading} />
+                        ${error && html`<div class="error">${error}</div>`}
+                        <${CardContainer} cards=${currentCollection.cards} />
+                    `}
+                </div>
+            `
+        }
+
+        const CreateCollection = ({ onCreate, loading }) => {
+            const [name, setName] = useState('')
+
+            const handleSubmit = (e) => {
+                e.preventDefault()
+                if (name.trim()) {
+                    onCreate(name.trim())
+                    setName('')
+                }
+            }
+
+            return html`
+                <form onSubmit=${handleSubmit}>
+                    <input 
+                        type="text" 
+                        value=${name}
+                        onInput=${e => setName(e.target.value)}
+                        placeholder="Collection Name" 
+                        required
+                        disabled=${loading}
+                    />
+                    <button type="submit" disabled=${loading}>
+                        ${loading ? 'Creating...' : 'Create Collection'}
+                    </button>
+                </form>
+            `
+        }
+
+        const Form = ({ onSubmit, loading }) => {
+            const [input, setInput] = useState('')
+
+            const handleSubmit = (e) => {
+                e.preventDefault()
+                if (input.trim()) {
+                    onSubmit(input.trim())
+                    setInput('')
+                }
+            }
+
+            return html`
+                <form onSubmit=${handleSubmit}>
+                    <input 
+                        type="text" 
+                        value=${input}
+                        onInput=${e => setInput(e.target.value)}
+                        placeholder="Input URL" 
+                        required
+                        aria-label="Input URL"
+                        disabled=${loading}
+                    />
+                    <button type="submit" disabled=${loading}>
+                        ${loading ? 'Loading...' : 'Add'}
+                    </button>
+                </form>
+            `
+        }
+
+        const CardContainer = ({ cards, onDelete }) => {
+            return html`
+                <div class="card-container">
+                    ${cards.map(card => html`
+                        <${Card} key=${card.id} ...${card} onDelete=${onDelete} />
+                    `)}
+                </div>
+            `
+        }
+
+        const Card = ({ id, type, data, onDelete }) => {
+            return html`
+                <div class="card">
+                    <button 
+                        class="delete-button" 
+                        onClick=${() => onDelete(id)}
+                        aria-label="Delete card"
+                    >
+                        X
+                    </button>
+                    ${type === 'tweet' ? html`<${TweetCard} ...${data} />` : html`<${PageCard} ...${data} />`}
+                </div>
+            `
+        }
+
+        const TweetCard = ({ pfp, handle, author, text, mediaImages, favicon, url }) => {
+            const xIconHotlink = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/X_icon_2.svg/1024px-X_icon_2.svg.png"
+            return html`
+                <div class="tweet-card">
+                    <img class="headline-image" src=${mediaImages[0] || xIconHotlink} alt="Tweet image" />
+                    <div class="card-content">
+                        <div class="tweet-author">
+                            <img class="tweet-pfp" src=${pfp} alt="Profile picture" />
+                            <p class="card-description">@${handle}</p>
+                        </div>
+                        <div class="card-title">${author}</div>
+                        <div class="card-description">${text || ''}</div>
+                        <img class="favicon" src=${favicon} alt="Favicon" />
+                        <a href=${url} target="_blank" rel="noopener noreferrer">Open tweet</a>
+                    </div>
+                </div>
+            `
+        }
+
+        const PageCard = ({ image, title, description, domain, favicon, url }) => {
+            return html`
+                <div class="page-card">
+                    <img class="headline-image" src=${image} alt=${title} />
+                    <div class="card-content">
+                        <div class="card-title">${title}</div>
+                        <div class="card-description">${description || ''}</div>
+                        <div class="card-description">${domain}</div>
+                        <img class="favicon" src=${favicon} alt="Favicon" />
+                        <a href=${url} target="_blank" rel="noopener noreferrer">Open page</a>
+                    </div>
+                </div>
+            `
+        }
+
+        render(html`<${App} />`, document.body)
+    </script>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            /* max-width: 800px; */
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-        body{
-            font-family: Arial, Helvetica, sans-serif;
+        h1 {
+            text-align: center;
+        }
+
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
         }
 
         .card {
             position: relative;
-            max-width: 300px;
-            border: 1px solid #ccc;
+            width: 300px;
+            border: 1px solid #ddd;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
-
-        .headline-image {
-            width: 100%;
-            height: auto;
-        }
-
-        .card-content {
-            padding: 16px;
-        }
-
-        .card-title {
-            font-size: 1.25em;
-            font-weight: bold;
-            margin: 0 0 8px;
-        }
-
-        .card-description {
-            font-size: 1em;
-            margin: 0 0 8px;
-            white-space: pre-wrap;
-        }
-
-        .card-footer {
-            font-size: 0.9em;
-            color: #555;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .delete-button {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            background-color: #ff4d4d;
-            border: none;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 0, 0, 0.7);
             color: white;
-            font-size: 1.2em;
-            cursor: pointer;
+            border: none;
             border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
+            width: 30px;
+            height: 30px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
-        .delete-button:hover {
-            background-color: #ff1a1a;
+        .headline-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
         }
 
-        .favicon {
-            height: 16px;
-            width: 16px;
+        .card-content {
+            padding: 15px;
         }
 
-        .tweet-pfp {
-            height: 40px;
-            width: 40px;
-            /* display: inline; */
-            border-radius: 100%;
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .card-description {
+            font-size: 14px;
+            margin-bottom: 10px;
         }
 
         .tweet-author {
-           display:flex;
-           flex-direction: row;
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
         }
 
-        #cardContainer {
-            display: flex;
-            gap: 30px;
+        .tweet-pfp {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .favicon {
+            width: 16px;
+            height: 16px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        form {
+            padding-bottom: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+        }
+
+        .error {
+            color: red;
+            margin-bottom: 10px;
         }
     </style>
-
 </head>
 
 <body>
-    <h1>Page Collector</h1>
-    <form id="promptForm">
-        <input type="text" id="input" placeholder="Input URL" required>
-        <button type="submit">Add</button>
-    </form>
-    <!-- <div id="response"></div>
-    <div id="textContent"></div> -->
-    <div id="loading" style="display: none;">Loading...</div>
-
-    <div id="cardContainer"></div>
-
-    <script src="app.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Collector</title>
+
+    <style>
+
+        body{
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .card {
+            position: relative;
+            max-width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .headline-image {
+            width: 100%;
+            height: auto;
+        }
+
+        .card-content {
+            padding: 16px;
+        }
+
+        .card-title {
+            font-size: 1.25em;
+            font-weight: bold;
+            margin: 0 0 8px;
+        }
+
+        .card-description {
+            font-size: 1em;
+            margin: 0 0 8px;
+            white-space: pre-wrap;
+        }
+
+        .card-footer {
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .delete-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background-color: #ff4d4d;
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .delete-button:hover {
+            background-color: #ff1a1a;
+        }
+
+        .favicon {
+            height: 16px;
+            width: 16px;
+        }
+
+        .tweet-pfp {
+            height: 40px;
+            width: 40px;
+            /* display: inline; */
+            border-radius: 100%;
+        }
+
+        .tweet-author {
+           display:flex;
+           flex-direction: row;
+        }
+
+        #cardContainer {
+            display: flex;
+            gap: 30px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <h1>Page Collector</h1>
+    <form id="promptForm">
+        <input type="text" id="input" placeholder="Input URL" required>
+        <button type="submit">Add</button>
+    </form>
+    <!-- <div id="response"></div>
+    <div id="textContent"></div> -->
+    <div id="loading" style="display: none;">Loading...</div>
+
+    <div id="cardContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

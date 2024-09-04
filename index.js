@@ -1,6 +1,10 @@
 
 require("dotenv").config();
 const path = require("path");
+const sqlite3 = require('sqlite3').verbose();
+const { open } = require('sqlite');
+const shortid = require('shortid');
+
 const url = require('url');
 const express = require("express");
 const OpenAI = require('openai');
@@ -36,6 +40,81 @@ const openai = new OpenAI({
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')))
+
+
+let db;
+(async () => {
+    db = await open({
+        filename: 'collections.db',
+        driver: sqlite3.Database
+    });
+
+    await db.exec(`
+    CREATE TABLE IF NOT EXISTS collections (
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    CREATE TABLE IF NOT EXISTS cards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      collection_id TEXT,
+      type TEXT,
+      data TEXT,
+      FOREIGN KEY (collection_id) REFERENCES collections(id)
+    );
+  `);
+})();
+
+
+// Create a new collection
+app.post("/collections", async (req, res) => {
+    const { name } = req.body;
+    const id = shortid.generate();
+
+    try {
+        await db.run('INSERT INTO collections (id, name) VALUES (?, ?)', [id, name]);
+        res.status(201).json({ id, name });
+    } catch (error) {
+        console.error("Error creating collection", error);
+        res.status(500).send("An error occurred while creating the collection.");
+    }
+});
+
+// Add a card to a collection
+app.post("/collections/:id/cards", async (req, res) => {
+    const { id } = req.params;
+    const { type, data } = req.body;
+    
+    try {
+      await db.run('INSERT INTO cards (collection_id, type, data) VALUES (?, ?, ?)', 
+        [id, type, JSON.stringify(data)]);
+      res.status(201).send("Card added successfully");
+    } catch (error) {
+      console.error("Error adding card", error);
+      res.status(500).send("An error occurred while adding the card.");
+    }
+  });
+
+// Get a collection
+app.get("/collections/:id", async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+      const collection = await db.get('SELECT * FROM collections WHERE id = ?', id);
+      if (!collection) {
+        return res.status(404).send("Collection not found");
+      }
+      
+      const cards = await db.all('SELECT * FROM cards WHERE collection_id = ?', id);
+      collection.cards = cards.map(card => ({...card, data: JSON.parse(card.data)}));
+      
+      res.json(collection);
+    } catch (error) {
+      console.error("Error fetching collection", error);
+      res.status(500).send("An error occurred while fetching the collection.");
+    }
+  });
 
 app.get("/health", (req, res) => {
     res.send("healthy");
