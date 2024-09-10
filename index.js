@@ -70,13 +70,13 @@ let db;
 // List all collections
 app.get("/collections", async (req, res) => {
     try {
-      const collections = await db.all('SELECT * FROM collections');
-      res.json(collections);
+        const collections = await db.all('SELECT * FROM collections');
+        res.json(collections);
     } catch (error) {
-      console.error("Error fetching collections", error);
-      res.status(500).send("An error occurred while fetching the collections.");
+        console.error("Error fetching collections", error);
+        res.status(500).send("An error occurred while fetching the collections.");
     }
-  });
+});
 
 // Create a new collection
 app.post("/collections", async (req, res) => {
@@ -96,36 +96,64 @@ app.post("/collections", async (req, res) => {
 app.post("/collections/:id/cards", async (req, res) => {
     const { id } = req.params;
     const { type, data } = req.body;
-    
+
     try {
-      await db.run('INSERT INTO cards (collection_id, type, data) VALUES (?, ?, ?)', 
-        [id, type, JSON.stringify(data)]);
-      res.status(201).send("Card added successfully");
+        await db.run('INSERT INTO cards (collection_id, type, data) VALUES (?, ?, ?)',
+            [id, type, JSON.stringify(data)]);
+        res.status(201).send("Card added successfully");
     } catch (error) {
-      console.error("Error adding card", error);
-      res.status(500).send("An error occurred while adding the card.");
+        console.error("Error adding card", error);
+        res.status(500).send("An error occurred while adding the card.");
     }
-  });
+});
+
+// Delete a collection
+app.delete("/collections/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        await db.run('DELETE FROM cards WHERE collection_id = ?', id);
+        await db.run('DELETE FROM collections WHERE id = ?', id);
+        res.status(200).send("Collection deleted successfully");
+    } catch (error) {
+        console.error("Error deleting collection", error);
+        res.status(500).send("An error occurred while deleting the collection.");
+    }
+});
+
+// Delete a card
+app.delete("/collections/:collectionId/cards/:cardId", async (req, res) => {
+    const { collectionId, cardId } = req.params;
+
+    try {
+        await db.run('DELETE FROM cards WHERE id = ? AND collection_id = ?', [cardId, collectionId]);
+        res.status(200).send("Card deleted successfully");
+    } catch (error) {
+        console.error("Error deleting card", error);
+        res.status(500).send("An error occurred while deleting the card.");
+    }
+});
+
 
 // Get a collection
 app.get("/collections/:id", async (req, res) => {
     const { id } = req.params;
-    
+
     try {
-      const collection = await db.get('SELECT * FROM collections WHERE id = ?', id);
-      if (!collection) {
-        return res.status(404).send("Collection not found");
-      }
-      
-      const cards = await db.all('SELECT * FROM cards WHERE collection_id = ?', id);
-      collection.cards = cards.map(card => ({...card, data: JSON.parse(card.data)}));
-      
-      res.json(collection);
+        const collection = await db.get('SELECT * FROM collections WHERE id = ?', id);
+        if (!collection) {
+            return res.status(404).send("Collection not found");
+        }
+
+        const cards = await db.all('SELECT * FROM cards WHERE collection_id = ?', id);
+        collection.cards = cards.map(card => ({ ...card, data: JSON.parse(card.data) }));
+
+        res.json(collection);
     } catch (error) {
-      console.error("Error fetching collection", error);
-      res.status(500).send("An error occurred while fetching the collection.");
+        console.error("Error fetching collection", error);
+        res.status(500).send("An error occurred while fetching the collection.");
     }
-  });
+});
 
 app.get("/health", (req, res) => {
     res.send("healthy");

@@ -105,6 +105,41 @@
                 }
             }
 
+            const deleteCollection = async (id) => {
+                if (!confirm('Are you sure you want to delete this collection?')) return;
+
+                setLoading(true)
+                setError(null)
+                try {
+                    await fetch(`/collections/${id}`, { method: 'DELETE' })
+                    setCollections(prev => prev.filter(collection => collection.id !== id))
+                } catch (err) {
+                    setError('Failed to delete collection. Please try again.')
+                    console.error('Error:', err)
+                } finally {
+                    setLoading(false)
+                }
+            }
+
+            const deleteCard = async (cardId) => {
+                if (!confirm('Are you sure you want to delete this card?')) return;
+
+                setLoading(true)
+                setError(null)
+                try {
+                    await fetch(`/collections/${currentCollection.id}/cards/${cardId}`, { method: 'DELETE' })
+                    setCurrentCollection(prev => ({
+                        ...prev,
+                        cards: prev.cards.filter(card => card.id !== cardId)
+                    }))
+                } catch (err) {
+                    setError('Failed to delete card. Please try again.')
+                    console.error('Error:', err)
+                } finally {
+                    setLoading(false)
+                }
+            }
+
             return html`
         <div class="app">
             <h1>Page Collector</h1>
@@ -113,7 +148,7 @@
                 <p>Share this collection: ${window.location.href}</p>
                 <${Form} onSubmit=${addCard} loading=${loading} />
                 ${error && html`<div class="error">${error}</div>`}
-                <${CardContainer} cards=${currentCollection.cards} />
+                <${CardContainer} cards=${currentCollection.cards} onDelete=${deleteCard} />
                 <a href="${window.location.origin}" class="button">Back to Collections</a>
             ` : html`
                 <${CreateCollection} onCreate=${createCollection} loading=${loading} />
@@ -127,6 +162,7 @@
                                     ${collection.name}
                                 </a>
                                 <span class="collection-date">${new Date(collection.created_at).toLocaleDateString()}</span>
+                                <button onclick=${() => deleteCollection(collection.id)} class="delete-button">Delete</button>
                             </li>
                         `)}
                     </ul>
@@ -136,8 +172,6 @@
         </div>
     `
         }
-
-
 
         const CreateCollection = ({ onCreate, loading }) => {
             const [name, setName] = useState('')
@@ -198,27 +232,27 @@
 
         const CardContainer = ({ cards, onDelete }) => {
             return html`
-                <div class="card-container">
-                    ${cards.map(card => html`
-                        <${Card} key=${card.id} ...${card} onDelete=${onDelete} />
-                    `)}
-                </div>
-            `
+        <div class="card-container">
+            ${cards.map(card => html`
+                <${Card} key=${card.id} ...${card} onDelete=${() => onDelete(card.id)} />
+            `)}
+        </div>
+    `
         }
 
         const Card = ({ id, type, data, onDelete }) => {
             return html`
-                <div class="card">
-                    <button 
-                        class="delete-button" 
-                        onClick=${() => onDelete(id)}
-                        aria-label="Delete card"
-                    >
-                        X
-                    </button>
-                    ${type === 'tweet' ? html`<${TweetCard} ...${data} />` : html`<${PageCard} ...${data} />`}
-                </div>
-            `
+        <div class="card">
+            <button 
+                class="delete-button" 
+                onClick=${onDelete}
+                aria-label="Delete card"
+            >
+                X
+            </button>
+            ${type === 'tweet' ? html`<${TweetCard} ...${data} />` : html`<${PageCard} ...${data} />`}
+        </div>
+    `
         }
 
         const TweetCard = ({ pfp, handle, author, text, mediaImages, favicon, url }) => {
@@ -411,6 +445,35 @@
 
         .button:hover {
             background-color: #0056b3;
+        }
+
+        .delete-button {
+            background-color: #ff4136;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        .delete-button:hover {
+            background-color: #d50000;
+        }
+
+        .collections-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card .delete-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 2px 6px;
+            font-size: 0.7em;
         }
     </style>
 </head>
