@@ -14,3 +14,11 @@ Content-Type: application/json
 {
   "prompt": "where is timbuktu"
 }
+
+
+###
+GET http://localhost:3001/collections
+
+
+###
+GET http://localhost:3001/collections/gRTZTZwsi

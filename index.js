@@ -67,6 +67,17 @@ let db;
 })();
 
 
+// List all collections
+app.get("/collections", async (req, res) => {
+    try {
+      const collections = await db.all('SELECT * FROM collections');
+      res.json(collections);
+    } catch (error) {
+      console.error("Error fetching collections", error);
+      res.status(500).send("An error occurred while fetching the collections.");
+    }
+  });
+
 // Create a new collection
 app.post("/collections", async (req, res) => {
     const { name } = req.body;
@@ -229,7 +240,7 @@ function getFavicon(document, url) {
     return faviconUrl;
 }
 
-const PORT = 3001 || process.env.PORT;
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
