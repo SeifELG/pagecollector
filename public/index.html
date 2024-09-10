@@ -157,12 +157,14 @@
                         collections.length > 0 ? html`
                     <ul class="collections-list">
                         ${collections.map(collection => html`
-                            <li key=${collection.id}>
-                                <a href="?id=${collection.id}">
-                                    ${collection.name}
-                                </a>
-                                <span class="collection-date">${new Date(collection.created_at).toLocaleDateString()}</span>
-                                <button onclick=${() => deleteCollection(collection.id)} class="delete-button">Delete</button>
+                            <li key=${collection.id} class="collection-item">
+                                <div class="collection-info">
+                                    <a href="?id=${collection.id}" class="collection-name">
+                                        ${collection.name}
+                                    </a>
+                                    <span class="collection-date">${new Date(collection.created_at).toLocaleDateString()}</span>
+                                </div>
+                                <button onclick=${(e) => { e.preventDefault(); deleteCollection(collection.id); }} class="delete-button">Delete</button>
                             </li>
                         `)}
                     </ul>
@@ -474,6 +476,73 @@
             right: 5px;
             padding: 2px 6px;
             font-size: 0.7em;
+        }
+
+        .collections-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .collection-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+
+        .collection-info {
+            flex-grow: 1;
+        }
+
+        .collection-name {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .collection-date {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .delete-button {
+            background-color: #ff4136;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .delete-button:hover {
+            background-color: #d50000;
+        }
+
+        .card .delete-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 2px 6px;
+            font-size: 0.7em;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
