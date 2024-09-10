@@ -18,8 +18,25 @@
                 const collectionId = new URLSearchParams(window.location.search).get('id')
                 if (collectionId) {
                     fetchCollection(collectionId)
+                } else {
+                    fetchAllCollections()
                 }
             }, [])
+
+            const fetchAllCollections = async () => {
+                setLoading(true)
+                setError(null)
+                try {
+                    const response = await fetch('/collections')
+                    const data = await response.json()
+                    setCollections(data)
+                } catch (err) {
+                    setError('Failed to fetch collections. Please try again.')
+                    console.error('Error:', err)
+                } finally {
+                    setLoading(false)
+                }
+            }
 
             const fetchCollection = async (id) => {
                 setLoading(true)
@@ -89,20 +106,38 @@
             }
 
             return html`
-                <div class="app">
-                    <h1>Page Collector</h1>
-                    ${!currentCollection ? html`
-                        <${CreateCollection} onCreate=${createCollection} loading=${loading} />
-                    ` : html`
-                        <h2>${currentCollection.name}</h2>
-                        <p>Share this collection: ${window.location.origin}?id=${currentCollection.id}</p>
-                        <${Form} onSubmit=${addCard} loading=${loading} />
-                        ${error && html`<div class="error">${error}</div>`}
-                        <${CardContainer} cards=${currentCollection.cards} />
-                    `}
-                </div>
-            `
+        <div class="app">
+            <h1>Page Collector</h1>
+            ${currentCollection ? html`
+                <h2>${currentCollection.name}</h2>
+                <p>Share this collection: ${window.location.href}</p>
+                <${Form} onSubmit=${addCard} loading=${loading} />
+                ${error && html`<div class="error">${error}</div>`}
+                <${CardContainer} cards=${currentCollection.cards} />
+                <a href="${window.location.origin}" class="button">Back to Collections</a>
+            ` : html`
+                <${CreateCollection} onCreate=${createCollection} loading=${loading} />
+                <h2>All Collections</h2>
+                ${loading ? html`<p>Loading collections...</p>` :
+                        collections.length > 0 ? html`
+                    <ul class="collections-list">
+                        ${collections.map(collection => html`
+                            <li key=${collection.id}>
+                                <a href="?id=${collection.id}">
+                                    ${collection.name}
+                                </a>
+                                <span class="collection-date">${new Date(collection.created_at).toLocaleDateString()}</span>
+                            </li>
+                        `)}
+                    </ul>
+                ` : html`<p>No collections found. Create one to get started!</p>`}
+                ${error && html`<div class="error">${error}</div>`}
+            `}
+        </div>
+    `
         }
+
+
 
         const CreateCollection = ({ onCreate, loading }) => {
             const [name, setName] = useState('')
@@ -334,6 +369,48 @@
         .error {
             color: red;
             margin-bottom: 10px;
+        }
+
+        .collections-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .collections-list li {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+
+        .collections-list a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .collection-date {
+            float: right;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        button {
+            margin-top: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
